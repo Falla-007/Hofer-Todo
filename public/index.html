@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>To-Do Liste</title>
+  <style>
+    /* --- Basislayout und Schrift --- */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+
+    /* --- Header-Bereich --- */
+    header {
+      background-color: #4caf50;
+      color: #fff;
+      padding: 1em;
+      text-align: center;
+      font-size: 1.5em;
+      position: relative;
+    }
+
+    /* --- Login-Bereich (Standard: oben rechts) --- */
+    #login-section {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    #login-section form {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    #login-section input {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+      min-width: 120px;
+    }
+    #login-section button {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background-color 0.2s ease-in-out;
+    }
+    #login-section button:hover {
+      background-color: #0056b3;
+    }
+
+    /* --- Hauptinhalt --- */
+    main {
+      margin: 20px auto;
+      max-width: 1100px;
+      padding: 20px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    /* --- Tabellen-Container: ermöglicht horizontales Scrollen --- */
+    #table-section {
+      overflow-x: auto;
+    }
+
+    /* --- Tabelle (feste Spaltenbreiten) --- */
+    table {
+      /* 8 Spalten x mind. 120 px => mind. 960 px */
+      min-width: 960px;
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      table-layout: fixed;
+    }
+    table thead {
+      background-color: #4caf50;
+      color: #fff;
+    }
+    table th,
+    table td {
+      border: 1px solid #ddd;
+      padding: 15px;
+      text-align: center;
+      font-size: 14px;
+      vertical-align: middle;
+      min-width: 120px;
+    }
+
+    /* --- Input-Felder in den Zellen --- */
+    /* Datum etwas größer (16px) und mehr Padding */
+    td input[type="date"] {
+      font-size: 16px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    td input[type="text"] {
+      font-size: 14px;
+      padding: 8px;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    /* Checkbox-Label: minimaler Abstand */
+    .done-label {
+      display: inline-flex;
+      align-items: center;
+      margin-top: 6px;
+    }
+    .done-label input[type="checkbox"] {
+      margin-right: 4px;
+    }
+
+    /* --- Allgemeine Buttons (Zeile hinzufügen) --- */
+    button {
+      background-color: #4caf50;
+      color: #fff;
+      border: none;
+      padding: 10px 15px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background-color 0.2s ease-in-out;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+
+    /* ------ Responsive Layout ------ */
+    /* --- Tablet-Bereich --- */
+    @media (max-width: 768px) {
+      header {
+        font-size: 1.2em;
+      }
+      #login-section {
+        position: static;
+        margin-top: 10px;
+        justify-content: center;
+      }
+      main {
+        padding: 10px;
+        margin-top: 0;
+      }
+      table th, table td {
+        font-size: 12px;
+        padding: 10px;
+      }
+    }
+
+    /* --- Smartphone-Bereich --- */
+    @media (max-width: 480px) {
+      header {
+        padding: 0.5em;
+      }
+      /* Damit das fixierte Login unten nicht alles überlappt */
+      body {
+        padding-bottom: 130px; /* Platz reservieren für Login */
+      }
+      main {
+        margin-top: 0;
+        padding: 10px 5px;
+      }
+      table th, table td {
+        font-size: 12px;
+        padding: 8px;
+      }
+      /* Login-Bereich unten fixieren, aber kompakter */
+      #login-section {
+        position: fixed;
+        top: 80%;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        background-color: rgba(255, 255, 255, 0.95);
+        padding: 8px 10px;
+        border-radius: 8px 8px 0 0;
+        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+        z-index: 9999;
+      }
+      /* Inputs und Button schmaler */
+      #login-section input,
+      #login-section button {
+        width: 85%;
+        margin: 3px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  To-Do Liste
+  <div id="login-section">
+    <form id="login-form" onsubmit="handleLogin(event)">
+      <input type="text" id="username" name="username" placeholder="Benutzername" required />
+      <input type="password" id="password" name="password" placeholder="Passwort" required />
+      <button type="submit">Anmelden</button>
+    </form>
+    <button id="logout-button" style="display: none;" onclick="handleLogout()">Abmelden</button>
+  </div>
+</header>
+
+<main>
+  <div id="table-section">
+    <table>
+      <thead>
+        <tr>
+          <th>Von</th>
+          <th>Bis</th>
+          <th>Müll</th>
+          <th>Hennen</th>
+          <th>Auto ausräumen</th>
+          <th>Bio Müll</th>
+          <th>Strom einschalten</th>
+          <th>Andere Tätigkeiten</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Dynamischer Inhalt wird hier eingefügt -->
+      </tbody>
+    </table>
+    <button id="add-row-button" style="display: none;" onclick="addRow()">Zeile hinzufügen</button>
+  </div>
+</main>
+
+<script>
+  // Hashes wie gehabt
+  const validUsernameHash = "3510d46616b9eb08f794bd07a296658b49c8846e1d2bd3fbf843a91e3a39944a"; 
+  const validPasswordHash = "b7db987624e7c50c23c82045af4e21c4a35c24a700c855a9219a78a60faf09d6";
+
+  let isEditable = false;
+
+  // Wir halten die Einträge in "clientData" vor, 
+  // nachdem wir sie per fetch("/api/todos") vom Server geholt haben.
+  let clientData = [];
+
+  document.addEventListener("DOMContentLoaded", () => {
+    loadDataFromServer(); // Gleich beim Start Daten vom Server holen
+  });
+
+  // Daten vom Server holen:
+  async function loadDataFromServer() {
+    try {
+      const response = await fetch("/api/todos");
+      if (!response.ok) throw new Error("Fehler beim Laden /api/todos");
+      clientData = await response.json();
+      renderTable();
+    } catch (err) {
+      console.error("Fehler bei loadDataFromServer()", err);
+      clientData = []; // Falls was schiefgeht, leeres Array
+      renderTable();
+    }
+  }
+
+  async function hashSHA256(str) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(str);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  function handleLogin(event) {
+    event.preventDefault();
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+
+    Promise.all([hashSHA256(username), hashSHA256(password)]).then(([usernameHash, passwordHash]) => {
+      if (usernameHash === validUsernameHash && passwordHash === validPasswordHash) {
+        isEditable = true;
+        document.getElementById("login-form").style.display = "none";
+        document.getElementById("logout-button").style.display = "block";
+        document.getElementById("add-row-button").style.display = "block";
+        renderTable();
+      } else {
+        alert("Ungültiger Benutzername oder Passwort");
+      }
+    });
+  }
+
+  function handleLogout() {
+    isEditable = false;
+    document.getElementById("login-form").style.display = "flex";
+    document.getElementById("logout-button").style.display = "none";
+    document.getElementById("add-row-button").style.display = "none";
+    renderTable();
+  }
+
+  // Hauptfunktion: baut die Tabelle aus "clientData" auf
+  function renderTable() {
+    const tbody = document.querySelector("tbody");
+    tbody.innerHTML = "";
+
+    clientData.forEach((row, index) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>
+          <input type="date"
+                 value="${row.von || ""}"
+                 onchange="updateRow(${index}, 'von', this.value)"
+                 ${isEditable ? "" : "readonly"} />
+        </td>
+        <td>
+          <input type="date"
+                 value="${row.bis || ""}"
+                 onchange="updateRow(${index}, 'bis', this.value)"
+                 ${isEditable ? "" : "readonly"} />
+        </td>
+        <!-- Müll -->
+        <td>
+          <input type="text"
+                 value="${row.muell || ""}"
+                 onchange="updateRow(${index}, 'muell', this.value)"
+                 ${isEditable ? "" : "readonly"} />
+          <div>
+            <label class="done-label">
+              <input type="checkbox"
+                     ${row.muelldone ? "checked" : ""}
+                     onchange="updateRow(${index}, 'muelldone', this.checked)"
+                     ${isEditable ? "" : "disabled"} />
+              Erledigt?
+            </label>
+            <input type="text"
+                   placeholder="Wer hat's gemacht?"
+                   value="${row.muelldoneby || ""}"
+                   style="margin-top:4px;"
+                   onchange="updateRow(${index}, 'muelldoneby', this.value)"
+                   ${isEditable ? "" : "readonly"} />
+          </div>
+        </td>
+
+        <!-- ... analog für hennen, auto, biomuell, strom, andere ... -->
+
+        <td>
+          <input type="text"
+                 value="${row.andere || ""}"
+                 onchange="updateRow(${index}, 'andere', this.value)"
+                 ${isEditable ? "" : "readonly"} />
+          <div>
+            <label class="done-label">
+              <input type="checkbox"
+                     ${row.anderedone ? "checked" : ""}
+                     onchange="updateRow(${index}, 'anderedone', this.checked)"
+                     ${isEditable ? "" : "disabled"} />
+              Erledigt?
+            </label>
+            <input type="text"
+                   placeholder="Wer hat's gemacht?"
+                   value="${row.anderedoneby || ""}"
+                   style="margin-top:4px;"
+                   onchange="updateRow(${index}, 'anderedoneby', this.value)"
+                   ${isEditable ? "" : "readonly"} />
+          </div>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Update-Funktion => PUT /api/todos/:id
+  async function updateRow(index, field, value) {
+    if (!isEditable) return;
+    // Lokale Änderung
+    clientData[index][field] = value;
+
+    // Auf Server schreiben
+    try {
+      const id = clientData[index].id; // vom Server vergebene ID
+      const response = await fetch(`/api/todos/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(clientData[index]),
+      });
+      if (!response.ok) throw new Error("Fehler beim PUT /api/todos");
+      const updated = await response.json();
+      clientData[index] = updated; // aktualisiertes Objekt
+    } catch (err) {
+      console.error("Fehler bei updateRow()", err);
+    }
+  }
+
+  // Neue Zeile => POST /api/todos
+  async function addRow() {
+    if (!isEditable) return;
+    // Standardwerte, analog zu dem, was dein Backend in server.js erwartet
+    const newTodo = {
+      von: "",
+      bis: "",
+      muell: "",
+      muelldone: false,
+      muelldoneby: "",
+      hennen: "",
+      hennendone: false,
+      hennendoneby: "",
+      auto: "",
+      autdone: false,
+      autodoneby: "",
+      biomuell: "",
+      biomuelldone: false,
+      biomuelldoneby: "",
+      strom: "",
+      stromdone: false,
+      stromdoneby: "",
+      andere: "",
+      anderedone: false,
+      anderedoneby: ""
+    };
+
+    try {
+      const response = await fetch("/api/todos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newTodo),
+      });
+      if (!response.ok) throw new Error("Fehler beim POST /api/todos");
+      const created = await response.json();
+      // "created" enthält den Datensatz mit "id"
+      clientData.push(created);
+      renderTable();
+    } catch (err) {
+      console.error("Fehler bei addRow()", err);
+    }
+  }
+</script>
+</body>
+</html>
