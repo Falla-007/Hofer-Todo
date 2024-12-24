@@ -9,11 +9,11 @@ const { Pool } = require("pg");
 // Auf Render bekommst du in process.env.DATABASE_URL
 // deine Datenbank-Verbindungs-URL bereitgestellt.
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false, 
-  },
-});
+    connectionString: 'postgresql://hofer_todo_user:v7myqMuCR86PspKZIebYMsMSt864qiPV@dpg-ctlc90jv2p9s738f6ve0-a.frankfurt-postgres.render.com/hofer_todo',
+    ssl: {
+      rejectUnauthorized: false, // SSL-Verbindung erzwingen
+    },
+  });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
